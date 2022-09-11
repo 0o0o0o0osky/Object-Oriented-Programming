@@ -1,5 +1,6 @@
 package Assignment_1;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.text.SimpleDateFormat;
@@ -18,12 +19,15 @@ class Student {
     private String gender = "";
     private int age = 0;
     float fine = 0;
-    HashMap<Integer, Book> haveBooks = new HashMap<Integer, Book>();
+    ArrayList<String> haveBooks = new ArrayList<String>() {
+    };
+    Date register_date;
 
     /* Name and ID are necessary. */
     public Student(String name, int ID) {
         setName(name);
         this.ID = ID;
+        register_date = new Date();
     }
 
     public String getName() {
@@ -54,18 +58,17 @@ class Student {
         this.age = age;
     }
 
-    public void checkBooks() {
+    public void showBooks() {
         if (haveBooks.size() != 0) {
-            String str = "I have: ";
-            for (Book book : haveBooks) {
-                str += (book.name) + ", ";
+            String str = "Have: ";
+            for (String book_name : haveBooks) {
+                str += (book_name + ", ");
             }
-            str = str.substring(0, str.length() - 1);
+            str = str.substring(0, str.length() - 2);
             str += ".";
             System.out.println(str);
-        } else {
-            System.out.println("I have no books now!");
-        }
+        } else
+            System.out.println("Have no book.");
     }
 
     public void introduce() {
@@ -79,10 +82,6 @@ class Student {
             System.out.println("I'm " + getAge() + " years old.");
     }
 
-    public void askForBook(String bookName) {
-        System.out.println("Could you tell me is there a book named " + bookName + "?");
-    }
-
     public void borrowbook(Book book) {
         System.out.println("I want to borrow this book named " + book.name + ".");
     }
@@ -91,10 +90,9 @@ class Student {
         System.out.println("I want to return the book named " + book.name + ".");
     }
 
-    public void lostBook(Book book) {
-
-        book.bookState = State.Lost;
-        System.out.println("I lost the book named " + book.name + ".");
+    public void lostBook(String book_name) {
+        System.out.println("I lost the book named " + book_name + ".");
+        haveBooks.remove(book_name);
     }
 
     public void paidFine() {
@@ -107,18 +105,18 @@ class Book {
     String name = "Null";
     String ISBN = "Null";
     String author = "Noname";
-    String Publisher = "Noname";
+    String publisher = "Noname";
     String category = "Uncategorized";
     int ID = -1;
     float value = 10; // It determines how much fine it will be paid when lost.
     State bookState = State.Unborrowed;
     private String borrower = "";
-    Date recordingDate; // The time when the book was recorded in the Library.
+    Date recording_date; // The time when the book was recorded in the Library.
 
     public Book(String name, String ISBN) {
         this.name = name;
         this.ISBN = ISBN;
-        recordingDate = new Date();
+        recording_date = new Date();
     }
 
     public String getBorrower() {
@@ -135,9 +133,10 @@ class Book {
         System.out.println("ISBN: " + ISBN);
         System.out.println("Category: " + category);
         System.out.println("Author: " + author);
+        System.out.println("Publisher: " + publisher);
         System.out.println("Value: " + value + "$");
         System.out.println("State: " + bookState);
-        System.out.println("Recording date: " + sdf.format(recordingDate));
+        System.out.println("Recording date: " + sdf.format(recording_date));
     }
 }
 
@@ -145,7 +144,7 @@ class Librarian {
     private String name = "";
     private int ID = 0;
     private int age = 0;
-    private Date hiredate;
+    Date hiredate;
 
     public Librarian(String name, int ID) {
         setName(name);
@@ -173,28 +172,52 @@ class Librarian {
         this.age = age;
     }
 
-    private boolean searchBook(String bookName, ArrayList<Book> booksList) {
-        System.out.println("OK. Please wait for a minute.");
-        for (Book book : booksList) {
-            if (book.name.equals(bookName))
-                if (book.bookState != State.Unborrowed) {
-                    System.out.println("Sorry, this book now is not available.");
-                    return false;
-                } else {
-                    System.out.println("");
-                    return true;
-                }
+    public void lendBook(int studentID, int bookID, HashMap<Integer, Student> Students, HashMap<Integer, Book> Books) {
+        Student student = Students.get(studentID);
+        if (student.haveBooks.size() >= 10) {
+            System.out.println("You have borrowed too many books.");
+        } else {
+            Book book = Books.get(bookID);
+            book.setBorrower(Students.get(studentID).getName());
+            book.bookState = State.Borrowed;
+            student.haveBooks.add(book.name);
+            System.out.println("Here you are.");
         }
-        System.out.println("Sorry, there is no such book as you said in our library.");
-        return false;
     }
 
-    public void lendBook(Student student, Book book, ArrayList<Book> booksList) {
-        booksList.get(book.ID);
+    public void setBookLost(int studentID, int bookID, HashMap<Integer, Student> Students,
+            HashMap<Integer, Book> Books) {
+        Student student = Students.get(studentID);
+        Book book = Books.get(bookID);
+        book.bookState = State.Lost;
+        student.fine += book.value;
+        System.out.println(student.getName() + ", how dare you! " + book.value + "$ has been added to your fine.");
     }
 
-    public void receiveBook(Student student, int index,ArrayList<Book>booksList){
-        if(index<0||index>=bookshelf.size())
+    public void collectFine(int studentID, int bookID, HashMap<Integer, Student> Students,
+            HashMap<Integer, Book> Books) {
+        Student student = Students.get(studentID);
+        Book book = Books.get(bookID);
+        book.setBorrower("");
+        student.fine = 0;
+        System.out.println("Don't do that again, " + student.getName() + "!");
+    }
 
+    public void receiveBook(int studentID, int bookID, HashMap<Integer, Student> Students,
+            HashMap<Integer, Book> Books) {
+        Student student = Students.get(studentID);
+        Book book = Books.get(bookID);
+        student.haveBooks.remove(book.name);
+        book.bookState = State.Unborrowed;
+        book.setBorrower("");
+        System.out.println("Thanks for returning the book.");
+    }
+
+    public void updateBook(Book book, HashMap<Integer, Book> Books) {
+        Books.put(book.ID, book);
+    }
+
+    public void removeBook(int bookID, HashMap<Integer, Book> Books) {
+        Books.remove(bookID);
     }
 }
