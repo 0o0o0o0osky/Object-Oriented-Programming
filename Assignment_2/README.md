@@ -1,2 +1,2 @@
 # Assignment 2
-Start working, not finished yet.
+Start working, through creating a folder.
