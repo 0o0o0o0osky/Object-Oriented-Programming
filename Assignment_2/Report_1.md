@@ -47,4 +47,4 @@ public static void main(String[] args) throws Exception {
 Hello World!
 Hello Java!
 ```
-&ensp;&ensp;&ensp;&ensp;可以看到，MVStore的存储方式是非关系型的。关系型数据库的数据可以看作一个二维表格；而MVStore是键值存储，在之后我们会看到，其采用B-树数据结构进行存储。对于较少的数据，这种存储方式快速而灵活。
+&ensp;&ensp;&ensp;&ensp;可以看到，MVStore的存储方式是非关系型的。关系型数据库的数据可以看作一个二维表格；而MVStore是键值存储，在之后我们会看到，其采用B+树数据结构进行存储。对于较少的数据，这种存储方式快速而灵活。
